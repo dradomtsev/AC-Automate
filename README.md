@@ -8,7 +8,7 @@ Perform several operations with ArchiCAD:
 * receive resulted data from subprocess and save it to the file
 
 ### Get Properties Info
-Get all BuiltIn and User defeined properties, their guids and details from template file. ArchiCAD 24.3008 INT
+Get all BuiltIn and User defined properties, their guids and details from template file. ArchiCAD 24.3008 INT
 
 ### Get Layouts Info
 Get tree with properties of master and work layouts.
