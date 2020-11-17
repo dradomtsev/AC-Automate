@@ -4,5 +4,5 @@
     "sResourceFilePath": "C:\\ArchiCAD_24_INT\\Workfile\\AC-TestModel-24INT.pln",
     "sResultFilePath": "C:\\Users\\d.radomtsev\\source\\repos\\AC-Automate\\Autostart AC & run Python\\AC-TestModel-24INT-Result.json",
     "iWaitTimeForFileOpen": 40,
-    "sExecutableScriptPath": "C:\\Users\\d.radomtsev\\source\\repos\\AC-Automate\\Autostart AC & run Python\\AC-AUT-GetElementIDs.py"
+    "sExecutableScriptPath": "C:\\Users\\d.radomtsev\\source\\repos\\AC-Automate\\Check classifiacation\\AC-AUT-CheckClassification.py"
 }

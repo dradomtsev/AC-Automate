@@ -11,7 +11,8 @@ ACcomm  =   ACconn.commands
 # Classes
 
 # Functions
-def GetACPropertiesInfo(lAllProps):
+def GetACPropertiesInfo():
+    lAllProps = []
     try:
         lAllPropsName       = ACcomm.GetAllPropertyNames()
         lAllPropsId         = ACcomm.GetPropertyIds(lAllPropsName)
@@ -31,6 +32,7 @@ def GetACPropertiesInfo(lAllProps):
     except:
         print('Can\'t merge archicad properties')
         pass
+    return lAllProps
 
 
 def WriteToJSON(sFileName,lAllItems):
@@ -48,5 +50,6 @@ def WriteToJSON(sFileName,lAllItems):
 lAllProps = []
 sFileName = 'AC-Properties-24INT.json'
 
-GetACPropertiesInfo(lAllProps)
+lAllProps = GetACPropertiesInfo()
+# GetACPropertiesInfo(lAllProps)
 WriteToJSON(sFileName,lAllProps)

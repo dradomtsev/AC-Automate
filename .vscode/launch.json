@@ -1,0 +1,17 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+    
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": ["postgres://zgmuvafmojcorw:982f3e5ea43ce369b64372e43e700e1c94019c6c17f8b5ff0a8e0e3afcf7ac7e@ec2-34-253-148-186.eu-west-1.compute.amazonaws.com:5432/d9elj9lptioi2r"]
+        }
+    ]
+}
