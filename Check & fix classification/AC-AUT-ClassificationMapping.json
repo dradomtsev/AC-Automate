@@ -1,0 +1,29 @@
+{
+    "ElemClassMapping": [
+        {
+            "element": "Wall",
+            "ACelementType": ["Wall"],
+            "ACclassificationType": ["Wall"]
+        },
+        {
+            "element": "Slab",
+            "ACelementType": ["Slab"],
+            "ACclassificationType": ["Slab"]
+        },
+        {
+            "element": "Beam",
+            "ACelementType": ["Beam"],
+            "ACclassificationType": ["Beam"]
+        },
+        {
+            "element": "Window",
+            "ACelementType": ["Window"],
+            "ACclassificationType": ["Window"]
+        },
+        {
+            "element": "Space",
+            "ACelementType": ["Zone"],
+            "ACclassificationType": ["Space"]
+        }
+    ]
+}

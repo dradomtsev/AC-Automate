@@ -1,0 +1,5 @@
+{
+    "sACClassificationName": "ARCHICAD Classification",
+    "aACPropertyName": ["General_ElementID","General_Type"],
+    "aACClassificationFixFileName": "AC-AUT-FixClassification.csv"
+}
