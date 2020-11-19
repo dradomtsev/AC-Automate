@@ -32,9 +32,8 @@ class ClassificationItem:
         self.description = description
 
 # Functions
-# General program configuration
-def Config():
-    sFilePath = os.path.dirname(os.path.abspath(__file__)) + '\\'+ 'config.json'
+# Configuration
+def Config(sFilePath):
     with open(sFilePath) as json_file:
         objConfig = json.loads(json_file.read(), object_hook = lambda d: SimpleNamespace(**d))
     return objConfig
@@ -53,16 +52,9 @@ def GetClassificationSystemItem(classificationItems,aClassificationSystemItems):
             )
             GetClassificationSystemItem(classificationItemChild.classificationItem,aClassificationSystemItems)
 
-# Config classification mapping
-def ConfigClassification():
-    sFilePath = os.path.dirname(os.path.abspath(__file__)) + '\\'+ 'AC-AUT-ClassificationMapping.json'
-    with open(sFilePath) as json_file:
-        objClassConfig = json.loads(json_file.read(), object_hook = lambda d: SimpleNamespace(**d))
-    return objClassConfig
-
 #####################################################################
 # Main
-def main():
+def main(iACProcessPort):
     # Define locals
     aACElementsDB = []
     aElementClassification = []
@@ -70,13 +62,13 @@ def main():
 
     # Try read configuration file
     try:
-        objConfig = Config()
+        objConfig = Config(os.path.dirname(os.path.abspath(__file__)) + '\\'+ 'config.json')
     except:
         print("Can't configure program")
 
     # Read classification mapping file
     try:
-        objClassConfig = ConfigClassification()
+        objClassConfig = Config(os.path.dirname(os.path.abspath(__file__)) + '\\'+ 'AC-AUT-ClassificationMapping.json')
     except:
         print("Can't read classification mapping file")
 
@@ -95,7 +87,7 @@ def main():
 
     # Set internal connection with ArchiCAD
     try:
-        conn = ACConnection.connect(int('19723')) 
+        conn = ACConnection.connect(iACProcessPort) 
         assert conn
         acc = conn.commands
         act = conn.types
@@ -154,4 +146,20 @@ def main():
 
 # Set up entry point
 if __name__ == '__main__':
-    main()
+    # Init AC port
+    # Try read configuration file
+    try:
+        objSessionConfig = Config(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '\\'+ 'session.json')
+    except:
+        print("Can't configure program")
+    # Check ArchiCAD port
+    # Get ArchiCAD API ports range
+    rACPortRange = ACConnection._port_range()
+    try:
+        if objSessionConfig.iACProcessPort in rACPortRange:
+            main(objSessionConfig.iACProcessPort)
+        else:
+            # If args is empty set port with error value
+            raise Exception("Invalid ArchiCAD port")
+    except Exception as inst:
+        print(inst.args)

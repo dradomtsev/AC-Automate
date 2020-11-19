@@ -32,19 +32,11 @@ class ClassificationItem:
         self.description = description
 
 # Functions
-# General program configuration
-def Config():
-    sFilePath = os.path.dirname(os.path.abspath(__file__)) + '\\'+ 'config.json'
+# Configuration
+def Config(sFilePath):
     with open(sFilePath) as json_file:
         objConfig = json.loads(json_file.read(), object_hook = lambda d: SimpleNamespace(**d))
     return objConfig
-
-# PostgreSQL connection configuration
-def PGConfig():
-    sFilePath = os.path.dirname(os.path.abspath(__file__)) + '\\'+ '__NOTSYNC_postgresqlConfig.json'
-    with open(sFilePath) as json_file:
-        objPGConfig = json.loads(json_file.read(), object_hook = lambda d: SimpleNamespace(**d))
-    return objPGConfig
 
 # Recursive function for Classification system tree data flattening
 def GetClassificationSystemItem(classificationItems,aClassificationSystemItems):
@@ -62,7 +54,7 @@ def GetClassificationSystemItem(classificationItems,aClassificationSystemItems):
 
 #####################################################################
 # Main
-def main(iArchiCADPort):
+def main(iACProcessPort):
     # Define locals
     aElements = []
     aPropertyAllItems = []
@@ -72,16 +64,16 @@ def main(iArchiCADPort):
     objClassificationSystemID = []
     aACElementsDB = []
     aPropertyLocalListID = []
-
+    
     # Try read configuration file
     try:
-        objConfig = Config()
+        objConfig = Config(os.path.dirname(os.path.abspath(__file__)) + '\\'+ 'config.json')
     except:
         print("Can't configure program")
-    
+
     # Set internal connection with ArchiCAD
     try:
-        conn = ACConnection.connect(int('19723')) 
+        conn = ACConnection.connect(iACProcessPort) 
         assert conn
         acc = conn.commands
     except:
@@ -159,35 +151,35 @@ def main(iArchiCADPort):
         print("Can't get elements Classification data")
 
     # Set elements data - guid, id, type, classificationName, classificationGUID, classificationSystemGUID for insertion in DB
-    # try:
-    for iElementId,iElementProperty,iElementClassification in zip(aElements,aElementsPropertyData,aElementsnClassificationItem):
-        # Get Classification item based on element classification
-        iClassSystemItemTemp = next((f for f in aClassificationSystemItems if f.guid == iElementClassification.classificationIds[0].classificationId.classificationItemId.guid), None)
-        
-        # Check classification item
-        if iClassSystemItemTemp is not None:
-            iClassSystemItemTempID = iClassSystemItemTemp.id
-            iClassSystemItemTempGUID = iClassSystemItemTemp.guid
-        else:
-            iClassSystemItemTempID = 'Unclassified'
+    try:
+        for iElementId,iElementProperty,iElementClassification in zip(aElements,aElementsPropertyData,aElementsnClassificationItem):
+            # Get Classification item based on element classification
+            iClassSystemItemTemp = next((f for f in aClassificationSystemItems if f.guid == iElementClassification.classificationIds[0].classificationId.classificationItemId.guid), None)
+            
+            # Check classification item
+            if iClassSystemItemTemp is not None:
+                iClassSystemItemTempID = iClassSystemItemTemp.id
+                iClassSystemItemTempGUID = iClassSystemItemTemp.guid
+            else:
+                iClassSystemItemTempID = 'Unclassified'
 
-        # Insert data in temp list 
-        aACElementsDB.append(
-            Element(
-                iElementId.elementId.guid, 
-                iElementProperty.propertyValues[aPropertyLocalListID[0]].propertyValue.value,
-                iElementProperty.propertyValues[aPropertyLocalListID[1]].propertyValue.value,  
-                iClassSystemItemTempID,
-                iClassSystemItemTempGUID,
-                iElementClassification.classificationIds[0].classificationId.classificationSystemId.guid
+            # Insert data in temp list 
+            aACElementsDB.append(
+                Element(
+                    iElementId.elementId.guid, 
+                    iElementProperty.propertyValues[aPropertyLocalListID[0]].propertyValue.value,
+                    iElementProperty.propertyValues[aPropertyLocalListID[1]].propertyValue.value,  
+                    iClassSystemItemTempID,
+                    iClassSystemItemTempGUID,
+                    iElementClassification.classificationIds[0].classificationId.classificationSystemId.guid
+                )
             )
-        )
-    # except:
-    #     print("Can't set elements data for futher DB insertion")
+    except:
+        print("Can't set elements data for futher DB insertion")
 
     # Provide postgreSQL connection
     try:
-        objPGConfig = PGConfig()
+        objPGConfig = Config(os.path.dirname(os.path.abspath(__file__)) + '\\'+ '__NOTSYNC_postgresqlConfig.json')
         pgConn = psycopg2.connect(
             database    = objPGConfig.database, 
             user        = objPGConfig.user, 
@@ -224,13 +216,19 @@ def main(iArchiCADPort):
 # Set up entry point
 if __name__ == '__main__':
     # Init AC port
-    iArchiCADPort = 0
-    # Check args
-    if len(sys.argv) >= 2:
-        iArchiCADPort = sys.argv[1]
-        pass
-    else:
-        # If args is empty set port with error value
-        iArchiCADPort = -1
-        pass
-    main(iArchiCADPort)
+    # Try read configuration file
+    try:
+        objSessionConfig = Config(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '\\'+ 'session.json')
+    except:
+        print("Can't configure program")
+    # Check ArchiCAD port
+    # Get ArchiCAD API ports range
+    rACPortRange = ACConnection._port_range()
+    try:
+        if objSessionConfig.iACProcessPort in rACPortRange:
+            main(objSessionConfig.iACProcessPort)
+        else:
+            # If args is empty set port with error value
+            raise Exception("Invalid ArchiCAD port")
+    except Exception as inst:
+        print(inst.args)

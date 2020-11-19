@@ -1,5 +1,4 @@
 ﻿elemGUID,elemID,elemType,classType,CheckClassbyType,classGUID,classSysGUID
-b0fb5a5e-f2c7-4b83-abcd-c906ce0eae12,SW - 019,Wall,Beam,FALSE,bf3d655e-4ec7-428b-be51-59de113a1078,632c30e5-2b82-4a75-bfad-d52febce9a4a
-acf2f2a5-da27-493a-9aae-05a64d46e099,SW - 018,Wall,Beam,FALSE,bf3d655e-4ec7-428b-be51-59de113a1078,632c30e5-2b82-4a75-bfad-d52febce9a4a
-80def693-a084-4984-a9bf-03eee30814b7,SW - 020,Wall,Beam,FALSE,bf3d655e-4ec7-428b-be51-59de113a1078,632c30e5-2b82-4a75-bfad-d52febce9a4a
-7899401f-c9d5-4928-8afc-c9297e470405,SW - 017,Wall,Beam,FALSE,bf3d655e-4ec7-428b-be51-59de113a1078,632c30e5-2b82-4a75-bfad-d52febce9a4a
+85ad25b3-f93a-45de-a32a-e5568cb1db31,SW - 008,Wall,Beam,FALSE,bf3d655e-4ec7-428b-be51-59de113a1078,632c30e5-2b82-4a75-bfad-d52febce9a4a
+45501727-804c-4a9b-8e94-dab3ccf61f8d,SW - 005,Wall,Beam,FALSE,bf3d655e-4ec7-428b-be51-59de113a1078,632c30e5-2b82-4a75-bfad-d52febce9a4a
+294cd02c-811d-4746-ba93-fd43dc94e287,SLA - 002,Slab,Wall,FALSE,1aeb79eb-8d88-4f2e-9ea5-3432d006ab4f,632c30e5-2b82-4a75-bfad-d52febce9a4a
