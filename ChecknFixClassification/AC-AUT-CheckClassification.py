@@ -79,6 +79,36 @@ def main(iACProcessPort):
     except:
         print("Can't connect to ArchiCAD")
 
+    # Get Classification system data
+    try:
+        # Get all Classification systems
+        aClassificationSystems = acc.GetAllClassificationSystems()
+
+        # Get specific classification system mentioned in config.json
+        objClassificationSystem = next(c for c in aClassificationSystems if c.name == objConfig.sACClassificationName and c.version == objConfig.sACClassificationVersion)
+
+        # Get all Classification system items in tree
+        tClassificationSystemItems = acc.GetAllClassificationsInSystem(objClassificationSystem.classificationSystemId)
+    except:
+        print("Can't get ArchiCAD Classification system data")
+
+    # Flatten Classification system items for simplier usage
+    try:
+        for aClassificationSystemItem in tClassificationSystemItems:
+            # First level for root Classification items 
+            aClassificationSystemItems.append(
+                ClassificationItem(
+                    aClassificationSystemItem.classificationItem.classificationItemId.guid,
+                    aClassificationSystemItem.classificationItem.id,
+                    aClassificationSystemItem.classificationItem.name,
+                    aClassificationSystemItem.classificationItem.description
+                )
+            )
+            # Call recursive function for inner levels of items
+            GetClassificationSystemItem(aClassificationSystemItem.classificationItem,aClassificationSystemItems)
+    except:
+        print("Can't flatten Classification system items")
+
     # Get all elements
     try:
         aElements = acc.GetAllElements()
@@ -110,35 +140,7 @@ def main(iACProcessPort):
     except:
         print("Can't get ArchiCAD elements properties data")
     
-    # Get Classification system data
-    try:
-        # Get all Classification systems
-        aClassificationSystems = acc.GetAllClassificationSystems()
 
-        # Get specific classification system mentioned in config.json
-        objClassificationSystem = next(c for c in aClassificationSystems if c.name == objConfig.sACClassificationName)
-
-        # Get all Classification system items in tree
-        tClassificationSystemItems = acc.GetAllClassificationsInSystem(objClassificationSystem.classificationSystemId)
-    except:
-        print("Can't get ArchiCAD Classification system data")
-
-    # Flatten Classification system items for simplier usage
-    try:
-        for aClassificationSystemItem in tClassificationSystemItems:
-            # First level for root Classification items 
-            aClassificationSystemItems.append(
-                ClassificationItem(
-                    aClassificationSystemItem.classificationItem.classificationItemId.guid,
-                    aClassificationSystemItem.classificationItem.id,
-                    aClassificationSystemItem.classificationItem.name,
-                    aClassificationSystemItem.classificationItem.description
-                )
-            )
-            # Call recursive function for inner levels of items
-            GetClassificationSystemItem(aClassificationSystemItem.classificationItem,aClassificationSystemItems)
-    except:
-        print("Can't flatten Classification system items")
 
     # Get elements classification
     try:
@@ -149,33 +151,6 @@ def main(iACProcessPort):
         aElementsnClassificationItem = acc.GetClassificationsOfElements(aElements, objClassificationSystemID)
     except:
         print("Can't get elements Classification data")
-
-    # Set elements data - guid, id, type, classificationName, classificationGUID, classificationSystemGUID for insertion in DB
-    try:
-        for iElementId,iElementProperty,iElementClassification in zip(aElements,aElementsPropertyData,aElementsnClassificationItem):
-            # Get Classification item based on element classification
-            iClassSystemItemTemp = next((f for f in aClassificationSystemItems if f.guid == iElementClassification.classificationIds[0].classificationId.classificationItemId.guid), None)
-            
-            # Check classification item
-            if iClassSystemItemTemp is not None:
-                iClassSystemItemTempID = iClassSystemItemTemp.id
-                iClassSystemItemTempGUID = iClassSystemItemTemp.guid
-            else:
-                iClassSystemItemTempID = 'Unclassified'
-
-            # Insert data in temp list 
-            aACElementsDB.append(
-                Element(
-                    iElementId.elementId.guid, 
-                    iElementProperty.propertyValues[aPropertyLocalListID[0]].propertyValue.value,
-                    iElementProperty.propertyValues[aPropertyLocalListID[1]].propertyValue.value,  
-                    iClassSystemItemTempID,
-                    iClassSystemItemTempGUID,
-                    iElementClassification.classificationIds[0].classificationId.classificationSystemId.guid
-                )
-            )
-    except:
-        print("Can't set elements data for futher DB insertion")
 
     # Provide postgreSQL connection
     try:
@@ -191,25 +166,46 @@ def main(iACProcessPort):
     except:
         print("Can't connect to DB")
 
-    # Insert elements data in DB
-    try:
-        # Prepare table for insertion
-        pgCur.execute("truncate table ac_classification_check")
-        pgConn.commit()
+    # Prepare table for insertion
+    pgCur.execute("truncate table ac_classification_check")
+    pgConn.commit()
 
-        # Insert data
-        for iACElement in aACElementsDB:
-            pgExecuteResult = pgCur.execute(
-                """INSERT INTO ac_classification_check ("elemGUID", "elemID", "elemType", "classGUID", "classType", "classSysGUID") VALUES (%s, %s, %s, %s, %s, %s);""",
-                (iACElement.guid, iACElement.ID, iACElement.type, iACElement.classGUID, iACElement.className, iACElement.classSysGUID)
+    # Set elements data - guid, id, type, classificationName, classificationGUID, classificationSystemGUID for insertion in DB
+    # try:
+    for iElementId,iElementProperty,iElementClassification in zip(aElements,aElementsPropertyData,aElementsnClassificationItem):
+        if iElementClassification.classificationIds[0].classificationId.classificationItemId is not None:
+            # Get Classification item based on element classification
+            iClassSystemItemTemp = next((f for f in aClassificationSystemItems if f.guid == iElementClassification.classificationIds[0].classificationId.classificationItemId.guid), None)
+        
+            # Check classification item
+            if iClassSystemItemTemp is not None:
+                iClassSystemItemTempID = iClassSystemItemTemp.id
+                iClassSystemItemTempGUID = iClassSystemItemTemp.guid
+            else:
+                iClassSystemItemTempID = 'Unclassified'
+                iClassSystemItemTempGUID = '00000000-0000-0000-0000-000000000000'
+        else:
+            iClassSystemItemTempID = 'Unclassified'
+            iClassSystemItemTempGUID = '00000000-0000-0000-0000-000000000000'
+
+        pgExecuteResult = pgCur.execute(
+            """INSERT INTO ac_classification_check ("elemGUID", "elemID", "elemType", "classGUID", "classType", "classSysGUID") VALUES (%s, %s, %s, %s, %s, %s);""",
+            (
+                iElementId.elementId.guid, 
+                iElementProperty.propertyValues[aPropertyLocalListID[0]].propertyValue.value,
+                iElementProperty.propertyValues[aPropertyLocalListID[1]].propertyValue.value,  
+                iClassSystemItemTempGUID,
+                iClassSystemItemTempID,
+                iElementClassification.classificationIds[0].classificationId.classificationSystemId.guid
             )
-            pgConn.commit()
+        )
+        pgConn.commit()
+    # except:
+    #     print("Can't set elements data for futher DB insertion")
 
-        # Close connection
-        pgCur.close()
-        pgConn.close()
-    except:
-        print("Can't insert elements data in DB")
+    # Close connection
+    pgCur.close()
+    pgConn.close()
 
     return aACElementsDB
 

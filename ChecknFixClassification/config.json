@@ -1,5 +1,6 @@
 {
     "sACClassificationName": "ARCHICAD Classification",
+    "sACClassificationVersion": "2X",
     "aACPropertyName": ["General_ElementID","General_Type"],
     "aACClassificationFixFileName": "AC-AUT-FixClassification.csv"
 }
