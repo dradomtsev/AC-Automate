@@ -10,7 +10,9 @@ import json
 import os
 import psycopg2
 import psycopg2.extras
+import asyncio
 
+from asynczip import AsyncZip
 from types import SimpleNamespace
 from archicad import ACConnection
 
@@ -140,8 +142,6 @@ def main(iACProcessPort):
     except:
         print("Can't get ArchiCAD elements properties data")
     
-
-
     # Get elements classification
     try:
         # Make temporal list of Classification system IDs
@@ -151,6 +151,38 @@ def main(iACProcessPort):
         aElementsnClassificationItem = acc.GetClassificationsOfElements(aElements, objClassificationSystemID)
     except:
         print("Can't get elements Classification data")
+
+    # Set elements data - guid, id, type, classificationName, classificationGUID, classificationSystemGUID for insertion in DB
+    try:
+        for iElementId,iElementProperty,iElementClassification in zip(aElements,aElementsPropertyData,aElementsnClassificationItem):
+            if iElementClassification.classificationIds[0].classificationId.classificationItemId is not None:
+                # Get Classification item based on element classification
+                iClassSystemItemTemp = next((f for f in aClassificationSystemItems if f.guid == iElementClassification.classificationIds[0].classificationId.classificationItemId.guid), None)
+            
+                # Check classification item
+                if iClassSystemItemTemp is not None:
+                    iClassSystemItemTempID = iClassSystemItemTemp.id
+                    iClassSystemItemTempGUID = iClassSystemItemTemp.guid
+                else:
+                    iClassSystemItemTempID = 'Unclassified'
+                    iClassSystemItemTempGUID = '00000000-0000-0000-0000-000000000000'
+            else:
+                iClassSystemItemTempID = 'Unclassified'
+                iClassSystemItemTempGUID = '00000000-0000-0000-0000-000000000000'
+                
+            # Insert data in temp list 
+            aACElementsDB.append(
+                (
+                    iElementId.elementId.guid, 
+                    iElementProperty.propertyValues[aPropertyLocalListID[0]].propertyValue.value,
+                    iElementProperty.propertyValues[aPropertyLocalListID[1]].propertyValue.value,  
+                    iClassSystemItemTempGUID,
+                    iClassSystemItemTempID,
+                    iElementClassification.classificationIds[0].classificationId.classificationSystemId.guid
+                )
+            )
+    except:
+        print("Can't set elements data for futher DB insertion")
 
     # Provide postgreSQL connection
     try:
@@ -167,41 +199,19 @@ def main(iACProcessPort):
         print("Can't connect to DB")
 
     # Prepare table for insertion
-    pgCur.execute("truncate table ac_classification_check")
-    pgConn.commit()
-
-    # Set elements data - guid, id, type, classificationName, classificationGUID, classificationSystemGUID for insertion in DB
-    # try:
-    for iElementId,iElementProperty,iElementClassification in zip(aElements,aElementsPropertyData,aElementsnClassificationItem):
-        if iElementClassification.classificationIds[0].classificationId.classificationItemId is not None:
-            # Get Classification item based on element classification
-            iClassSystemItemTemp = next((f for f in aClassificationSystemItems if f.guid == iElementClassification.classificationIds[0].classificationId.classificationItemId.guid), None)
-        
-            # Check classification item
-            if iClassSystemItemTemp is not None:
-                iClassSystemItemTempID = iClassSystemItemTemp.id
-                iClassSystemItemTempGUID = iClassSystemItemTemp.guid
-            else:
-                iClassSystemItemTempID = 'Unclassified'
-                iClassSystemItemTempGUID = '00000000-0000-0000-0000-000000000000'
-        else:
-            iClassSystemItemTempID = 'Unclassified'
-            iClassSystemItemTempGUID = '00000000-0000-0000-0000-000000000000'
-
-        pgExecuteResult = pgCur.execute(
-            """INSERT INTO ac_classification_check ("elemGUID", "elemID", "elemType", "classGUID", "classType", "classSysGUID") VALUES (%s, %s, %s, %s, %s, %s);""",
-            (
-                iElementId.elementId.guid, 
-                iElementProperty.propertyValues[aPropertyLocalListID[0]].propertyValue.value,
-                iElementProperty.propertyValues[aPropertyLocalListID[1]].propertyValue.value,  
-                iClassSystemItemTempGUID,
-                iClassSystemItemTempID,
-                iElementClassification.classificationIds[0].classificationId.classificationSystemId.guid
-            )
-        )
+    try:
+        pgCur.execute("truncate table ac_classification_check")
         pgConn.commit()
-    # except:
-    #     print("Can't set elements data for futher DB insertion")
+    except:
+        print("Can't truncate DB")
+
+    # Insert data in DB
+    try:
+        pgQuery = """INSERT INTO ac_classification_check ("elemGUID", "elemID", "elemType", "classGUID", "classType", "classSysGUID") VALUES (%s, %s, %s, %s, %s, %s);"""
+        psycopg2.extras.execute_batch(pgCur,pgQuery,aACElementsDB, page_size=10000)
+        pgConn.commit()
+    except:
+        print("Can't insert data in DB")
 
     # Close connection
     pgCur.close()
