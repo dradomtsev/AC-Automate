@@ -1,7 +1,7 @@
 {
+    "sResourceFilePath": "C:\\ArchiCAD_24_INT\\Workfile\\UNC-C02A-A0708nA0709-A-CZ-Geometry.pln",
     "sProcessName": "ARCHICAD",
     "sProcessPath": "C:\\Program Files\\GRAPHISOFT\\ARCHICAD 24\\ARCHICAD.exe",
-    "sResourceFilePath": "T:\\!TST\\iyur\\python\\UNC-C02A-A0708nA0709-A-CZ.pln",
     "sResultFilePath": "C:\\Users\\d.radomtsev\\source\\repos\\AC-Automate\\Autostart AC & run Python\\AC-TestModel-24INT-Result.json",
     "iWaitTimeForFileOpen": 40,
     "sExecutableScriptPath": "C:\\Users\\d.radomtsev\\source\\repos\\AC-Automate\\ChecknFixClassification\\AC-AUT-CheckClassification.py"
