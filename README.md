@@ -1,5 +1,11 @@
 # AC-Automate: Automation playground for Graphisoft ArchiCAD 24
 
+### Check & fix ArchiCAD elements classification
+* Autostart AC & run subprocess python script for classification check
+* write resulted data in DB
+* analyze classification data in Power BI or any other BI platform
+* prepare from Power BI data for classification repairing
+* run python script for classification fix
 
 ### Autostart AC & run Python
 Perform several operations with ArchiCAD:
