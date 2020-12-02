@@ -6,6 +6,8 @@
 * analyze classification data in Power BI or any other BI platform
 * prepare from Power BI data for classification repairing
 * run python script for classification fix
+Watch video on LinkedIn 
+https://www.linkedin.com/posts/dmytroradomtsev_archicad-aec-bim-activity-6736024893999132672-guZs
 
 ### Autostart AC & run Python
 Perform several operations with ArchiCAD:
