@@ -1,1 +1,5 @@
-{"iACProcessPort": 19723, "iACPID": 14696, "tACstartDatetime": "2020-11-21 11:33:43"}
+{
+	"iACProcessPort":19723,
+	"iACPID":14696,
+	"tACstartDatetime":"2020-11-21 11:33:43"
+}
